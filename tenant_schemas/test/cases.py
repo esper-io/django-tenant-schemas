@@ -14,7 +14,10 @@ def get_dbs() -> list:
 def set_tenant_on_all_connections(tenant=None):
     if tenant:
         for db in get_dbs():
-            connections[db].set_tenant(tenant)
+            if tenant == get_public_schema_name():
+                connections[db].set_schema(tenant)
+            else:
+                connections[db].set_tenant(tenant)
 
 class TenantTestCase(TestCase):
     @classmethod
