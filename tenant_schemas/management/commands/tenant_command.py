@@ -3,6 +3,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command, get_commands, load_command_class
 from django.db import connection, connections
 from tenant_schemas.management.commands import InteractiveTenantOption
+from django.core import settings
+
+
+def get_dbs():
+    return settings.DATABASES.keys()
 
 
 class Command(InteractiveTenantOption, BaseCommand):
@@ -38,7 +43,7 @@ class Command(InteractiveTenantOption, BaseCommand):
 
         # Since we are not sure to which DB the request is headed,
         # lets set-tenant() to all relevant DBs
-        for db in connections.keys():
+        for db in get_dbs():
             connections[db].set_tenant(tenant)
 
         klass.run_from_argv(args)
@@ -49,7 +54,7 @@ class Command(InteractiveTenantOption, BaseCommand):
 
         # Since we are not sure to which DB the request is headed,
         # lets set-tenant() to all relevant DBs
-        for db in connections.keys():
+        for db in get_dbs():
             connections[db].set_tenant(tenant)
 
         call_command(*args, **options)
