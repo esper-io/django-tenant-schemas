@@ -1,13 +1,15 @@
 import argparse
-from django.core.management.base import BaseCommand, CommandError
+
+from django.conf import settings
 from django.core.management import call_command, get_commands, load_command_class
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, connections
+
 from tenant_schemas.management.commands import InteractiveTenantOption
-from django.core import settings
 
 
-def get_dbs():
-    return settings.DATABASES.keys()
+def get_dbs() -> list:
+    return list(settings.DATABASES.keys())
 
 
 class Command(InteractiveTenantOption, BaseCommand):
