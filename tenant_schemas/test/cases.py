@@ -1,11 +1,20 @@
 from django.conf import settings
 from django.core.management import call_command
-from django.db import connection
+from django.db import connection, connections
 from django.test import TestCase
 from tenant_schemas.utils import get_public_schema_name, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = '.test.com'
 
+
+def get_dbs() -> list:
+    return list(settings.DATABASES.keys())
+
+
+def set_tenant_on_all_connections(tenant=None):
+    if tenant:
+        for db in get_dbs():
+            connections[db].set_tenant(tenant)
 
 class TenantTestCase(TestCase):
     @classmethod
@@ -28,10 +37,12 @@ class TenantTestCase(TestCase):
         cls.tenant.save(verbosity=0)  # todo: is there any way to get the verbosity from the test command here?
 
         connection.set_tenant(cls.tenant)
+        set_tenant_on_all_connections(cls.tenant)
 
     @classmethod
     def tearDownClass(cls):
         connection.set_schema_to_public()
+        set_tenant_on_all_connections(get_public_schema_name())
         cls.tenant.delete()
 
         cls.remove_allowed_test_domain()
@@ -61,8 +72,10 @@ class FastTenantTestCase(TenantTestCase):
             cls.tenant.save(verbosity=0)
 
         connection.set_tenant(cls.tenant)
+        set_tenant_on_all_connections(cls.tenant)
 
     @classmethod
     def tearDownClass(cls):
         connection.set_schema_to_public()
+        set_tenant_on_all_connections(get_public_schema_name())
         cls.remove_allowed_test_domain()
