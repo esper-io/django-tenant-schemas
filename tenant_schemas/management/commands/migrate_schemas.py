@@ -46,6 +46,7 @@ class Command(SyncCommon):
                 else:
                     tenants = [self.schema_name]
             else:
+                connection.set_schema_to_public()
                 tenants = list(get_tenant_model().objects.using(db).exclude(schema_name=get_public_schema_name())
                                                                    .values_list('schema_name', flat=True))
             executor.run_migrations(tenants=tenants)
